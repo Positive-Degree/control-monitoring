@@ -1,2 +1,6 @@
 # control-monitoring
-Contains the modules for Raspberry pi and the computing unit for the waterheater monitoring and the computing control.
+Contains the modules for the Raspberry pi and the computing unit.
+
+- Water heater monitoring
+- Computing unit monitoring and control
+- Network communication

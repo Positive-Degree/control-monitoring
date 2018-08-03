@@ -1,5 +1,7 @@
+#
 # Created by Christophe Duchesne for Positive Degree
 # 2018/08/01
+#
 
 import os
 import time
@@ -24,6 +26,7 @@ sensor5_name = "-"
 
 # Contains all tempSensor objects
 tempSensors = []
+
 
 # Represents a physical temperature sensor (DS18B20 connected to the rpi)
 class TempSensor:
@@ -66,6 +69,7 @@ class TempSensor:
             # temp_fahrenheit = temp_c * 9.0 / 5.0 + 32.0
             return temp_celsius
 
+
 # Creates and logs all the measured temperatures in a txt file on the rpi
 def log_temps():
 
@@ -100,6 +104,3 @@ if __name__ == "__main__":
     while True:
         log_temps()
         time.sleep(reading_interval)
-
-
-

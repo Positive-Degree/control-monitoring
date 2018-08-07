@@ -6,9 +6,10 @@
 import os
 import time
 import datetime
+from rpi.rpi_pusher import temperature_measure_trigger
 
 # Temp reading interval in seconds
-reading_interval = 1
+reading_interval = 3
 
 # Sensor ids
 sensor1_id = '28-0217c038c3ff'
@@ -39,7 +40,14 @@ class TempSensor:
         self.sensor_name = sensor_name
         self.sensor_folder = self.rpi_base_dir + self.sensor_id
         self.sensor_file = self.sensor_folder + '/w1_slave'
+        self.current_temperature = 0.0
+
+        # Adds itself to the sensors list
         tempSensors.append(self)
+
+    # Updates its current temperature reading
+    def update_temp(self):
+        self.current_temperature = self.read_temp()
 
     # Reads the temperature measured by the sensor
     def read_temp(self):
@@ -70,7 +78,13 @@ class TempSensor:
             return temp_celsius
 
 
-# Creates and logs all the measured temperatures in a txt file on the rpi
+# Updates the current temperature reading of the sensors
+def update_sensors():
+    for sensor in tempSensors:
+        sensor.update_temp()
+
+
+# Creates and logs the measured temperatures of the sensors in a txt file on the rpi
 def log_temps():
 
     rpi_log_dir = '/home/pi/Documents/PositiveDegree/tempLogs/'
@@ -82,25 +96,39 @@ def log_temps():
     for sensor in tempSensors:
         current_time = str(datetime.datetime.now().time())
         sensor_name = str(sensor.sensor_name)
-        sensor_temp = str(sensor.read_temp())
+        sensor_temp = str(sensor.current_temperature)
         logfile.write(sensor_name + " : " + sensor_temp + " | " + current_time + "\n")
 
     logfile.close()
 
 
-if __name__ == "__main__":
+# Updates the temperature measures for the Pusher subscribers
+def push_temps():
 
+    for sensor in tempSensors:
+        temperature_measure_trigger(sensor.sensor_id, sensor.sensor_name, sensor.current_temperature)
+
+
+def main():
     # Creates all the sensors
     sensor1 = TempSensor(sensor1_id, sensor1_name)
     sensor2 = TempSensor(sensor2_id, sensor2_name)
-    #sensor3 = TempSensor(sensor3_id, sensor3_name)
-    #sensor4 = TempSensor(sensor4_id, sensor4_name)
-    #sensor5 = TempSensor(sensor5_id, sensor5_name)
+    # sensor3 = TempSensor(sensor3_id, sensor3_name)
+    # sensor4 = TempSensor(sensor4_id, sensor4_name)
+    # sensor5 = TempSensor(sensor5_id, sensor5_name)
 
     os.system('modprobe w1-gpio')
     os.system('modprobe w1-therm')
 
     # Shows temps every x amount of time
     while True:
-        log_temps()
+        update_sensors()
+        print(sensor1.current_temperature)
+        print(sensor2.current_temperature)
+        # log_temps()
+        push_temps()
         time.sleep(reading_interval)
+
+
+if __name__ == "__main__":
+    main()

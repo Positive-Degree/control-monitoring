@@ -29,3 +29,20 @@ class ConcreteCommand(Command):
 
     def execute(self):
         self._receiver.action()
+
+
+class StartMining(Command):
+
+    def execute(self):
+        self._receiver.btc_mining()
+
+
+class StartGaming(Command):
+
+    def execute(self):
+        self._receiver.steam_remote_gaming()
+
+
+# Receiver class template for the command pattern.
+class CommandReceiver:
+    pass

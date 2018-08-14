@@ -3,20 +3,20 @@
 # 2018/08/06
 #
 
-from rpi.temp_monitoring import TempSensor
 import socket
+import time
+import requests
+import json
 
-port_number = 3196
+port_number = "8080"
+laptop_public_host_url = "https://positive-degree.herokuapp.com/units/1/"
 
 
 def main():
-    s = socket.socket()
-    host = socket.gethostname()
-    port = port_number
 
-    s.connect((host, port))
-    print(s.recv(1024))
-    s.close()
+    custom_headers = {'unit-update': "True"}
+    response = requests.get(laptop_public_host_url, headers=custom_headers)
+    print(response.json()[0]["fields"]["running_process"])
 
 
 if __name__ == "__main__":

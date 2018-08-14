@@ -8,7 +8,6 @@ import pusher
 # Pusher constants
 temperature_monitoring_channel = 'temp-channel'
 
-
 # Pusher app configuration
 pusher_client = pusher.Pusher(
   app_id='573623',
@@ -21,7 +20,7 @@ pusher_client = pusher.Pusher(
 
 # New temperature measure to push on the temp monitoring channel
 def temperature_measure_trigger(sensor_id, sensor_name, temperature):
-    pusher_client.trigger(temperature_monitoring_channel, sensor_id, {'message': (sensor_name, temperature)})
+    pusher_client.trigger(temperature_monitoring_channel, sensor_id, {'message': temperature})
 
 
 # For testing purposes (sensor1_id)

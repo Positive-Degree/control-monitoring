@@ -62,15 +62,14 @@ def socket_exit_handler(socket_to_close):
 
 def main():
 
-    path = str(os.path.dirname(os.path.abspath(__file__))) + "/unit_model"
+    path = str(os.path.dirname(os.path.abspath(__file__))) + "\\unit_model"
     with open(path, "r") as unit_file:
         unit = json.load(unit_file)
     unit_client = UnitClient(unit)
-    unit_client.ping_for_update()
 
-    # while True:
-    #     unit_client.ping_for_update()
-    #     time.sleep(unit_client.unit.ping_frequency)
+    while True:
+        unit_client.ping_for_update()
+        time.sleep(unit_client.unit.ping_frequency)
 
 
 if __name__ == "__main__":

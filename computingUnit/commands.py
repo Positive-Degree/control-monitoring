@@ -31,16 +31,34 @@ class ConcreteCommand(Command):
         self._receiver.action()
 
 
+class StopMining(Command):
+
+    def execute(self):
+        self._receiver.stop_cgminer()
+
+
 class StartMining(Command):
 
     def execute(self):
-        self._receiver.btc_mining()
+        self._receiver.start_cgminer()
+
+
+class StartLeague(Command):
+
+    def execute(self):
+        self._receiver.start_LOL()
 
 
 class StartGaming(Command):
 
     def execute(self):
-        self._receiver.steam_remote_gaming()
+        self._receiver.start_gaming()
+
+
+class StopGaming(Command):
+
+    def execute(self):
+        self._receiver.stop_gaming()
 
 
 # Receiver class template for the command pattern.

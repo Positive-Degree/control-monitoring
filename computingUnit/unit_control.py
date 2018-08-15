@@ -9,6 +9,8 @@ from threading import Thread
 import os
 import json
 import computingUnit.commands as commands
+from computingUnit.applications.gaming import GamingControl
+from computingUnit.applications.mining import MiningControl
 
 unit_json_model_path = str(os.path.dirname(os.path.abspath(__file__))) + "/unit_model"
 
@@ -31,7 +33,7 @@ class ComputingUnit:
 
             self.running_process = new_unit_values["running_process"]
             control_thread = UnitControlThread(self.running_process)
-            control_thread.run()
+            control_thread.start()
 
         # Basic unit infos
         if not new_unit_values["name"] == self.name or \
@@ -58,6 +60,7 @@ class ComputingUnit:
         unit["name"] = self.name
         unit["port_number"] = self.port_number
         unit["ip_address"] = self.ip_address
+        unit["running_process"] = self.running_process
         unit["ping_frequency"] = self.ping_frequency
 
         with open(json_file_path, "w") as unit_file:
@@ -72,23 +75,30 @@ class UnitControlThread(Thread):
         super().__init__()
         self.commands = []
         self.new_process = new_process
+        self.gaming_controller = GamingControl()
+        self.mining_controller = MiningControl()
 
     def run(self):
 
         if self.new_process == "mining":
 
-            # Applying command pattern
-            # TODO : Command factory ?
-            receiver = MiningControl()
-            command = commands.StartMining(receiver)
+            # Stop other processes
+            command = commands.StopGaming(self.gaming_controller)
+            print("Mining was not running on unit.")
+            self.store_command(command)
+
+            # Start mining - applyging command pattern
+            command = commands.StartMining(self.mining_controller)
             self.store_command(command)
 
         elif self.new_process == "gaming":
 
+            # Stop other processes
+            command = commands.StopMining(self.mining_controller)
+            self.store_command(command)
+
             # Applying command pattern
-            # TODO : Command factory ?
-            receiver = GamingControl()
-            command = commands.StartGaming(receiver)
+            command = commands.StartLeague(self.gaming_controller)
             self.store_command(command)
 
         elif self.new_process == "webhosting":
@@ -102,28 +112,6 @@ class UnitControlThread(Thread):
     def execute_commands(self):
         for command in self.commands:
             command.execute()
-
-
-class MiningControl:
-
-    def __init__(self):
-        pass
-
-    def btc_mining(self):
-        self.setup_cg_miner()
-        print("Mining started")
-
-    def setup_cg_miner(self):
-        pass
-
-
-class GamingControl:
-
-    def __init__(self):
-        pass
-
-    def steam_remote_gaming(self):
-        print("Gaming started")
 
 
 def main():

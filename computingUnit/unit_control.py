@@ -30,7 +30,8 @@ class ComputingUnit:
         if not new_unit_values["running_process"] == self.running_process:
 
             self.running_process = new_unit_values["running_process"]
-            # TODO : entry point of command pattern - with UnitControlThread ?
+            control_thread = UnitControlThread(self.running_process)
+            control_thread.run()
 
         # Basic unit infos
         if not new_unit_values["name"] == self.name or \
@@ -67,18 +68,14 @@ class ComputingUnit:
 # Thread launched for each incoming unit_model.json control request
 class UnitControlThread(Thread):
 
-    def __init__(self, socket):
+    def __init__(self, new_process):
         super().__init__()
         self.commands = []
-        self.client_socket = socket
+        self.new_process = new_process
 
     def run(self):
-        client_msg = str(self.client_socket.recv(1024))
-        print(client_msg)
 
-        # TODO : to be replaced with messaging protocol
-        if client_msg == "b'11'":
-            response = "Process changed to crypto mining"
+        if self.new_process == "mining":
 
             # Applying command pattern
             # TODO : Command factory ?
@@ -86,8 +83,7 @@ class UnitControlThread(Thread):
             command = commands.StartMining(receiver)
             self.store_command(command)
 
-        elif client_msg == "b'12'":
-            response = "Process changed to gaming"
+        elif self.new_process == "gaming":
 
             # Applying command pattern
             # TODO : Command factory ?
@@ -95,13 +91,10 @@ class UnitControlThread(Thread):
             command = commands.StartGaming(receiver)
             self.store_command(command)
 
-        elif client_msg == "b'13'":
-            response = "Process changed to web hosting"
-        else:
-            response = "Connection established with unit_model.json but nothing changed"
+        elif self.new_process == "webhosting":
+            pass
 
         self.execute_commands()
-        self.send_response(response)
 
     def store_command(self, command):
         self.commands.append(command)
@@ -109,9 +102,6 @@ class UnitControlThread(Thread):
     def execute_commands(self):
         for command in self.commands:
             command.execute()
-
-    def send_response(self, response):
-        self.client_socket.send(response.encode())
 
 
 class MiningControl:

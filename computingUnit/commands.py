@@ -2,6 +2,7 @@
 # Created by Christophe Duchesne for Positive Degree
 # 2018/08/03
 #
+# Module used for the implementation of the command pattern.
 # Command pattern reference : https://sourcemaking.com/design_patterns/command/python/1
 #
 
@@ -19,16 +20,7 @@ class Command(metaclass=abc.ABCMeta):
         pass
 
 
-# Empty concreteCommand template
-class ConcreteCommand(Command):
-    """
-    Define a binding between a Receiver object and an action.
-    Implement Execute by invoking the corresponding operation(s) on
-    Receiver.
-    """
-
-    def execute(self):
-        self._receiver.action()
+# CONCRETE COMMANDS #
 
 
 class StopMining(Command):
@@ -60,7 +52,3 @@ class StopGaming(Command):
     def execute(self):
         self._receiver.stop_gaming()
 
-
-# Receiver class template for the command pattern.
-class CommandReceiver:
-    pass

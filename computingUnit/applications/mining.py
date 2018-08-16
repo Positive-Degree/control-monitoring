@@ -6,13 +6,15 @@
 #
 import socket
 import json
+import os
+from threading import Thread
 from idna import unicode
 import subprocess
 
+# Paths variable for application launches.
+# ** Valid for the first windows unit only **
 cg_miner_exe_path = 'C:\cgminer\cgminer'
-cg_miner_params = "-o stratum+tcp://stratum.antpool.com:3333 -u PositiveDegree.testunit "
-
-command = "C:\cgminer\cgminer -o stratum+tcp://stratum.antpool.com:3333 -u PositiveDegree.testunit -p \"\" "
+cgminer_conf_path = 'C:\cgminer\cgminer.conf'
 lol = 'C:\\Riot Games\\League of Legends\\LeagueClient'
 
 
@@ -29,8 +31,16 @@ class MiningControl:
             print("Mining was not running.")
 
     def start_cgminer(self):
-        subprocess.call(command)
-        pass
+        subprocess.call([cg_miner_exe_path, "-c", cgminer_conf_path])
+
+
+class CGminerThread(Thread):
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        subprocess.call([cg_miner_exe_path, "-c", cgminer_conf_path])
 
 
 # Source : https://thomassileo.name/blog/2013/09/17/playing-with-python-and-cgminer-rpc-api/
@@ -63,7 +73,7 @@ class CgminerAPI(object):
             sock.shutdown(socket.SHUT_RDWR)
             sock.close()
 
-        return json.loads(received[:-1])
+        return json.loads(received)
 
     def _receive(self, sock, size=4096):
         msg = ''
@@ -83,7 +93,7 @@ class CgminerAPI(object):
 
 # For testing purposes
 def main():
-    subprocess.call(lol)
+    os.startfile(lol)
 
 
 if __name__ == "__main__":

@@ -9,14 +9,13 @@ import json
 import os
 import time
 from computingUnit.unit_control import ComputingUnit
-from computingUnit.unit_control import UnitControlThread
 
 # Unit listen port number
 port_number = 2000
 heroku_units_url = "https://positive-degree.herokuapp.com/units/"
 
 
-# The network client associated with a unit to keep it updated
+# Network client associated with a unit to use networking functions
 class UnitClient:
 
     def __init__(self, unit_json):
@@ -24,12 +23,16 @@ class UnitClient:
 
     # Sends HTTP GET with custom header to retrieve unit data from the central website DB
     def ping_for_update(self):
+        # Custom http header to only request the unit's info as a json
         custom_headers = {'unit-update': "True"}
         response = requests.get(heroku_units_url + str(self.unit.id) + "/", headers=custom_headers)
+
         unit_values = response.json()[0]["fields"]
         self.unit.apply_changes(unit_values)
 
 
+# May be of use for further autonomous control : communication with local rpi and
+# temp sensors.
 class UnitServer:
 
     def __init__(self):
@@ -46,22 +49,19 @@ class UnitServer:
             self.socket.listen(5)  # Now wait for client connection.
             while True:
                 client_socket, client_address = self.socket.accept()  # Establish connection with client.
-
-                control_thread = UnitControlThread(client_socket)
-                control_thread.run()
+                # TODO : entry point of autonomous control depending of request
                 client_socket.close()
 
         except KeyboardInterrupt:
             self.socket.close()
 
 
-def socket_exit_handler(socket_to_close):
-    socket_to_close.close()
-    print("Socket closed.")
-
-
+# Main script to run on each unit. They will ping the webserver frequently to stay updated
+# with any changes made by a human controller
 def main():
 
+    # Each unit must have a local json model.
+    # ** Valid path for windows only **
     path = str(os.path.dirname(os.path.abspath(__file__))) + "\\unit_model"
     with open(path, "r") as unit_file:
         unit = json.load(unit_file)

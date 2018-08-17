@@ -81,7 +81,7 @@ class ComputingUnit:
         unit_file.close()
 
 
-# Thread launched for each incoming unit_model.json control request
+# Controls the processes or applications running on the machine
 class UnitProcessControl:
 
     def __init__(self, new_process):

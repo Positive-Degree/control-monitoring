@@ -5,11 +5,12 @@
 
 import os
 import time
+import sys
 import datetime
-from rpi.rpi_pusher import temperature_measure_trigger
+from rpi_pusher import temperature_measure_trigger
 
 # Temp reading interval in seconds
-reading_interval = 3
+reading_interval = 900
 
 # Sensor ids
 sensor1_id = '28-0217c038c3ff'
@@ -19,10 +20,10 @@ sensor4_id = '28-0117c052ecff'
 sensor5_id = '28-0217c067e9ff'
 
 # Sensor associated names
-sensor1_name = "water heater"
-sensor2_name = "ambient temperature "
-sensor3_name = "-"
-sensor4_name = "-"
+sensor1_name = "T-CPU"
+sensor2_name = "T-GPU"
+sensor3_name = "T-Ambient"
+sensor4_name = "T-Cuve"
 sensor5_name = "-"
 
 # Contains all tempSensor objects
@@ -113,8 +114,8 @@ def main():
     # Creates all the sensors
     sensor1 = TempSensor(sensor1_id, sensor1_name)
     sensor2 = TempSensor(sensor2_id, sensor2_name)
-    # sensor3 = TempSensor(sensor3_id, sensor3_name)
-    # sensor4 = TempSensor(sensor4_id, sensor4_name)
+    sensor3 = TempSensor(sensor3_id, sensor3_name)
+    sensor4 = TempSensor(sensor4_id, sensor4_name)
     # sensor5 = TempSensor(sensor5_id, sensor5_name)
 
     os.system('modprobe w1-gpio')
@@ -123,9 +124,12 @@ def main():
     # Shows temps every x amount of time
     while True:
         update_sensors()
-        print(sensor1.current_temperature)
-        print(sensor2.current_temperature)
-        # log_temps()
+        print(sensor1.sensor_name + ":" + str(sensor1.current_temperature))
+        print(sensor2.sensor_name + ":" + str(sensor2.current_temperature))
+        print(sensor3.sensor_name + ":" + str(sensor3.current_temperature))
+        print(sensor4.sensor_name + ":" + str(sensor4.current_temperature))
+
+        log_temps()
         push_temps()
         time.sleep(reading_interval)
 

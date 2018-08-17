@@ -25,7 +25,7 @@ def temperature_measure_trigger(sensor_id, sensor_name, temperature):
 
 # For testing purposes (sensor1_id)
 def main():
-    pusher_client.trigger('temp-channel', '28-0217c038c3ff', {'message': "RPI MSG TEST"})
+    pusher_client.trigger('temp-channel', '28-0217c038c3ff', {'message': "ALLO", 'name': "senseur 12039"})
 
 
 if __name__ == "__main__":

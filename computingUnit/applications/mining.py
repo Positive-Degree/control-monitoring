@@ -34,15 +34,6 @@ class MiningControl:
         subprocess.call([cg_miner_exe_path, "-c", cgminer_conf_path])
 
 
-class CGminerThread(Thread):
-
-    def __init__(self):
-        super().__init__()
-
-    def run(self):
-        subprocess.call([cg_miner_exe_path, "-c", cgminer_conf_path])
-
-
 # Source : https://thomassileo.name/blog/2013/09/17/playing-with-python-and-cgminer-rpc-api/
 # Used to send commands to the local cgminer via the API
 class CgminerAPI(object):

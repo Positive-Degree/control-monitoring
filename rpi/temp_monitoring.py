@@ -12,7 +12,7 @@ from networking import RpiUnitClient
 import pickle
 
 # Temp reading interval in seconds
-reading_interval = 900
+reading_interval = 3
 
 # Sensor ids
 sensor1_id = '28-0217c038c3ff'

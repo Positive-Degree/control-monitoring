@@ -145,9 +145,9 @@ class CommandThread(Thread):
 
 # Sends new processes to process control depending on sensor temperature input
 class TemperatureAnalyser(Thread):
-    def __init__(self, tem):
+    def __init__(self, temperatures):
         super().__init__()
-        pass
+        self.current_temperatures = temperatures
 
 
 # For testing purposes

@@ -19,13 +19,13 @@ unit_port_field = "port_number"
 class RpiUnitClient:
 
     def __init__(self, unit_id, unit_ip, unit_port_number):
-        self.socket = socket.socket()
         self.unit_id = unit_id
         self.unit_ip = unit_ip
         self.unit_port_number = unit_port_number
         self.look_for_update()
 
     def _connect_to_unit(self):
+        self.socket = socket.socket()
         self.socket.connect((self.unit_ip, self.unit_port_number))
 
     def send_to_unit(self, message):

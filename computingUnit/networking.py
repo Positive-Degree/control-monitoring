@@ -5,11 +5,12 @@
 
 import socket
 import requests
+from threading import Thread
 import json
 import os
 import time
 import pickle
-from computingUnit.unit_control import ComputingUnit
+from computingUnit.unit_control import ComputingUnit, TemperatureAnalyser
 
 # Unit listen port number
 port_number = 31000
@@ -47,35 +48,59 @@ class UnitServer:
     def setup_server(self):
         self.socket.bind(('', self.port))
 
+    # Listens and accepts incoming client connections
     def listen_incoming_connections(self):
         try:
             self.socket.listen(5)  # Now wait for client connection.
             while True:
                 client_socket, client_address = self.socket.accept()  # Establish connection with client.
                 temps = client_socket.recv(4096)
+
+                # Delegates temperatures to be analysed and trigger appropriate actions
                 print(pickle.loads(temps))
-                # TODO : entry point of autonomous control depending of request
+                TemperatureAnalyser(pickle.loads(temps))
                 client_socket.close()
 
         except KeyboardInterrupt:
             self.socket.close()
 
 
-# Main script to run on each unit.
-# - Pings the webserver frequently to stay updated with any changes made by a human controller
-# - Runs a server instance to receive temperature updates from a local network connected Rpi for autonomous control
+# Thread responsible for the client side
+class ClientThread(Thread):
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        # Each unit must have a local json model.
+        # ** Valid path for windows only **
+        path = str(os.path.dirname(os.path.abspath(__file__))) + "/" + unit_file_name
+        with open(path, "r") as unit_file:
+            unit = json.load(unit_file)
+        unit_client = UnitClient(unit)
+
+        while True:
+            unit_client.ping_for_update()
+            time.sleep(unit_client.unit.ping_frequency)
+
+
+# Thread responsible for the server side
+class ServerThread(Thread):
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        UnitServer()
+
+
+# Main script that runs on each unit.
+# - Pings the webserver frequently to stay updated with any changes made by a human controller (client part)
+# - Receive temperature updates from a local network connected Rpi for autonomous control (server part)
 def main():
+    client = ClientThread()
+    server = ServerThread()
 
-    # Each unit must have a local json model.
-    # ** Valid path for windows only **
-    path = str(os.path.dirname(os.path.abspath(__file__))) + "/" + unit_file_name
-    with open(path, "r") as unit_file:
-        unit = json.load(unit_file)
-    unit_client = UnitClient(unit)
-
-    while True:
-        unit_client.ping_for_update()
-        time.sleep(unit_client.unit.ping_frequency)
+    client.start()
+    server.start()
 
 
 def local_networking_test():
@@ -83,5 +108,5 @@ def local_networking_test():
 
 
 if __name__ == "__main__":
-    # main()
-    local_networking_test()
+    main()
+    # local_networking_test()

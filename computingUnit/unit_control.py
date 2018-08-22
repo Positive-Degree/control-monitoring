@@ -46,8 +46,8 @@ class ComputingUnit:
         # Attributes that trigger commands to be executed on unit
         if not new_unit_values[unit_process_field] == self.running_process:
             has_changed = True
-            process_controller = UnitProcessControl(new_unit_values[unit_process_field])
-            process_controller.change_process()
+            process_controller = UnitProcessControl()
+            process_controller.change_process(new_unit_values[unit_process_field])
 
         # Basic unit infos
         if not new_unit_values[unit_name_field] == self.name or \
@@ -57,11 +57,11 @@ class ComputingUnit:
             has_changed = True
 
         if has_changed:
-            self.update(new_unit_values)
-            self.update_json_model(unit_json_model_path)
+            self._update(new_unit_values)
+            self._update_json_model(unit_json_model_path)
 
     # Update of the object unit values
-    def update(self, new_unit_values):
+    def _update(self, new_unit_values):
         self.name = new_unit_values[unit_name_field]
         self.running_process = new_unit_values[unit_process_field]
         self.ip_address = new_unit_values[unit_ip_field]
@@ -69,7 +69,7 @@ class ComputingUnit:
         self.ping_frequency = new_unit_values[unit_ping_field]
 
     # Updates the local unit model json file
-    def update_json_model(self, json_file_path):
+    def _update_json_model(self, json_file_path):
 
         with open(json_file_path, "r") as unit_file:
             unit = json.load(unit_file)
@@ -89,58 +89,56 @@ class ComputingUnit:
 # Controls the processes or applications running on the machine
 class UnitProcessControl:
 
-    def __init__(self, new_process):
+    def __init__(self):
         self.commands = []
-        self.new_process = new_process
         self.gaming_controller = GamingControl()
         self.mining_controller = MiningControl()
 
-    def change_process(self):
+    # Executes a single command on a thread
+    class CommandThread(Thread):
+        def __init__(self, command):
+            super().__init__()
+            self.command = command
 
-        if self.new_process == mining_process:
+        def run(self):
+            self.command.execute()
+
+    def change_process(self, new_process):
+
+        if new_process == mining_process:
 
             # Stop other processes
             command = commands.StopGaming(self.gaming_controller)
-            self.store_command(command)
+            self._store_command(command)
 
             # Start mining - applyging command pattern
             command = commands.StartMining(self.mining_controller)
-            self.store_command(command)
+            self._store_command(command)
 
-        elif self.new_process == gaming_process:
+        elif new_process == gaming_process:
 
             # Stop other processes
             command = commands.StopMining(self.mining_controller)
-            self.store_command(command)
+            self._store_command(command)
 
             # Applying command pattern
             command = commands.StartLeague(self.gaming_controller)
-            self.store_command(command)
+            self._store_command(command)
 
-        elif self.new_process == webhosting_process:
+        elif new_process == webhosting_process:
             pass
 
-        self.execute_commands()
+        self._execute_commands()
 
     # Store a command for further execution
-    def store_command(self, command):
+    def _store_command(self, command):
         self.commands.append(command)
 
     # Executes all stored commands on different threads
-    def execute_commands(self):
+    def _execute_commands(self):
         for command in self.commands:
-            command_thread = CommandThread(command)
+            command_thread = self.CommandThread(command)
             command_thread.start()
-
-
-# Executes a single command on a thread
-class CommandThread(Thread):
-    def __init__(self, command):
-        super().__init__()
-        self.command = command
-
-    def run(self):
-        self.command.execute()
 
 
 # Sends new processes to process control depending on sensor temperature input
@@ -148,6 +146,15 @@ class TemperatureAnalyser(Thread):
     def __init__(self, temperatures):
         super().__init__()
         self.current_temperatures = temperatures
+
+    @staticmethod
+    def change_unit_process(new_process):
+        process_controller = UnitProcessControl()
+        process_controller.change_process(new_process)
+
+    def analyze_temperatures(self):
+        # TODO : temperature conditions change the process accordingly
+        pass
 
 
 # For testing purposes

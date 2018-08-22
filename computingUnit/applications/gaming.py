@@ -23,3 +23,6 @@ class GamingControl:
     def stop_gaming(self):
         pass
 
+    def start_furmark(self):
+        pass
+

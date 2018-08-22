@@ -22,6 +22,11 @@ unit_port_field = "port_number"
 unit_process_field = "running_process"
 unit_ping_field = "ping_frequency"
 
+# Process values
+mining_process = "mining"
+gaming_process = "gaming"
+webhosting_process = "webhosting"
+
 
 # Represents a unit. Responsible for updating its local json model and triggering
 # appropriate commands when changes happen
@@ -92,7 +97,7 @@ class UnitProcessControl:
 
     def change_process(self):
 
-        if self.new_process == "mining":
+        if self.new_process == mining_process:
 
             # Stop other processes
             command = commands.StopGaming(self.gaming_controller)
@@ -102,7 +107,7 @@ class UnitProcessControl:
             command = commands.StartMining(self.mining_controller)
             self.store_command(command)
 
-        elif self.new_process == "gaming":
+        elif self.new_process == gaming_process:
 
             # Stop other processes
             command = commands.StopMining(self.mining_controller)
@@ -112,7 +117,7 @@ class UnitProcessControl:
             command = commands.StartLeague(self.gaming_controller)
             self.store_command(command)
 
-        elif self.new_process == "webhosting":
+        elif self.new_process == webhosting_process:
             pass
 
         self.execute_commands()
@@ -136,6 +141,13 @@ class CommandThread(Thread):
 
     def run(self):
         self.command.execute()
+
+
+# Sends new processes to process control depending on sensor temperature input
+class TemperatureAnalyser(Thread):
+    def __init__(self, tem):
+        super().__init__()
+        pass
 
 
 # For testing purposes

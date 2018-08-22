@@ -5,9 +5,11 @@
 
 import os
 import time
-import sys
+import json
 import datetime
 from rpi_pusher import temperature_measure_trigger
+from networking import RpiUnitClient
+import pickle
 
 # Temp reading interval in seconds
 reading_interval = 900
@@ -28,6 +30,9 @@ sensor5_name = "-"
 
 # Contains all tempSensor objects
 tempSensors = []
+
+# Json file name
+unit_file_name = "unit_info"
 
 
 # Represents a physical temperature sensor (DS18B20 connected to the rpi)
@@ -110,6 +115,24 @@ def push_temps():
         temperature_measure_trigger(sensor.sensor_id, sensor.sensor_name, sensor.current_temperature)
 
 
+def create_rpi_client():
+    path = str(os.path.dirname(os.path.abspath(__file__))) + "/" + unit_file_name
+    with open(path, "r") as unit_file:
+        unit = json.load(unit_file)
+
+    client = RpiUnitClient(unit["unit_id"], None, None)
+    return client
+
+
+def build_temperatures_msg():
+    temp_msg = {}
+
+    for sensor in tempSensors:
+        temp_msg[sensor.sensor_name] = sensor.current_temperature
+
+    return pickle.dumps(temp_msg)
+
+
 def main():
     # Creates all the sensors
     sensor1 = TempSensor(sensor1_id, sensor1_name)
@@ -118,6 +141,10 @@ def main():
     sensor4 = TempSensor(sensor4_id, sensor4_name)
     # sensor5 = TempSensor(sensor5_id, sensor5_name)
 
+    # Create network client
+    rpi_client = create_rpi_client()
+
+    # Commands for reading sensor values
     os.system('modprobe w1-gpio')
     os.system('modprobe w1-therm')
 
@@ -129,8 +156,9 @@ def main():
         print(sensor3.sensor_name + ":" + str(sensor3.current_temperature))
         print(sensor4.sensor_name + ":" + str(sensor4.current_temperature))
 
-        log_temps()
-        push_temps()
+        rpi_client.send_to_unit(build_temperatures_msg())
+        #log_temps()
+        #push_temps()
         time.sleep(reading_interval)
 
 

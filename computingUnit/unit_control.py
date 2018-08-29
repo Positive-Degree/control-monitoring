@@ -57,21 +57,27 @@ class ComputingUnit:
             has_changed = True
 
         if has_changed:
-            self._update(new_unit_values)
-            self._update_json_model(unit_json_model_path)
+            self.update_unit(new_unit_values)
+
+    # Only updates of the unit process on the object instance and json file
+    def update_process(self, new_process):
+        self.running_process = new_process
+        self._update_json_model()
 
     # Update of the object unit values
-    def _update(self, new_unit_values):
+    def update_unit(self, new_unit_values):
         self.name = new_unit_values[unit_name_field]
         self.running_process = new_unit_values[unit_process_field]
         self.ip_address = new_unit_values[unit_ip_field]
         self.port_number = new_unit_values[unit_port_field]
         self.ping_frequency = new_unit_values[unit_ping_field]
 
-    # Updates the local unit model json file
-    def _update_json_model(self, json_file_path):
+        self._update_json_model()
 
-        with open(json_file_path, "r") as unit_file:
+    # Updates the local unit model json file
+    def _update_json_model(self):
+
+        with open(unit_json_model_path, "r") as unit_file:
             unit = json.load(unit_file)
         unit_file.close()
 
@@ -81,7 +87,7 @@ class ComputingUnit:
         unit[unit_process_field] = self.running_process
         unit[unit_ping_field] = self.ping_frequency
 
-        with open(json_file_path, "w") as unit_file:
+        with open(unit_json_model_path, "w") as unit_file:
             json.dump(unit, unit_file)
         unit_file.close()
 
@@ -156,9 +162,9 @@ class TemperatureAnalyser(Thread):
     def analyze_temperatures(self):
         current_process = self.unit.running_process
 
-        if self.current_temperatures["T-GPU"] < 30:
-            if not current_process == "mining":
-                self.change_unit_process("mining")
+        if self.current_temperatures["T-GPU"] > 30 and not current_process == gaming_process:
+            self.unit.update_process(gaming_process)
+            self.change_unit_process(gaming_process)
 
 
 # For testing purposes

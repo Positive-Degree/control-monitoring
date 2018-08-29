@@ -10,7 +10,7 @@ import json
 import os
 import time
 import pickle
-from computingUnit.unit_control import ComputingUnit, TemperatureAnalyser
+from computingUnit.unit_control import ComputingUnit, TemperatureAnalyser, UnitProcessControl
 
 # Unit listen port number
 port_number = 31000
@@ -31,6 +31,8 @@ class UnitClient:
         # Custom http header to only request the unit's info as a json
         custom_headers = {'unit-update': "True"}
         response = requests.get(heroku_units_url + str(self.unit.id) + "/", headers=custom_headers)
+
+        unit_controller = UnitProcessControl()
 
         unit_values = response.json()[0]["fields"]
         self.unit.apply_changes(unit_values)

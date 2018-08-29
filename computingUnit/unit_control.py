@@ -122,7 +122,7 @@ class UnitProcessControl:
             self._store_command(command)
 
             # Applying command pattern
-            command = commands.StartLeague(self.gaming_controller)
+            command = commands.StartGaming(self.gaming_controller)
             self._store_command(command)
 
         elif new_process == webhosting_process:
@@ -143,9 +143,10 @@ class UnitProcessControl:
 
 # Sends new processes to process control depending on sensor temperature input
 class TemperatureAnalyser(Thread):
-    def __init__(self, temperatures):
+    def __init__(self, temperatures, unit):
         super().__init__()
         self.current_temperatures = temperatures
+        self.unit = unit
 
     @staticmethod
     def change_unit_process(new_process):
@@ -153,8 +154,11 @@ class TemperatureAnalyser(Thread):
         process_controller.change_process(new_process)
 
     def analyze_temperatures(self):
-        # TODO : temperature conditions change the process accordingly
-        pass
+        current_process = self.unit.running_process
+
+        if self.current_temperatures["T-GPU"] < 30:
+            if not current_process == "mining":
+                self.change_unit_process("mining")
 
 
 # For testing purposes

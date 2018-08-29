@@ -26,13 +26,13 @@ class Command(metaclass=abc.ABCMeta):
 class StopMining(Command):
 
     def execute(self):
-        self._receiver.stop_cgminer()
+        self._receiver.stop_kryptex()
 
 
 class StartMining(Command):
 
     def execute(self):
-        self._receiver.start_cgminer()
+        self._receiver.start_kryptex()
 
 
 class StartLeague(Command):
@@ -44,11 +44,11 @@ class StartLeague(Command):
 class StartGaming(Command):
 
     def execute(self):
-        self._receiver.start_gaming()
+        self._receiver.start_steam()
 
 
 class StopGaming(Command):
 
     def execute(self):
-        self._receiver.stop_gaming()
+        self._receiver.stop_steam()
 

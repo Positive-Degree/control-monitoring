@@ -6,8 +6,6 @@
 #
 import socket
 import json
-import os
-from threading import Thread
 from idna import unicode
 import subprocess
 
@@ -15,7 +13,11 @@ import subprocess
 # ** Valid for the first windows unit only **
 cg_miner_exe_path = 'C:\cgminer\cgminer'
 cgminer_conf_path = 'C:\cgminer\cgminer.conf'
-lol = 'C:\\Riot Games\\League of Legends\\LeagueClient'
+kryptex_path = 'C:\\Users\\PositiveDegree\\AppData\\Local\\Kryptex\\Kryptex.exe'
+nicehash_path = 'C:\\Users\\PositiveDegree\\AppData\\Local\\Programs\\NiceHash Miner 2\\NiceHash Miner 2.exe'
+
+kryptex_kill = 'taskkill /im Kryptex.exe /F /t'
+nicehash_kill = 'taskkill /im NiceHash Miner 2.exe /t'
 
 
 class MiningControl:
@@ -28,16 +30,29 @@ class MiningControl:
         try:
             self.cgminerapi.quit()
         except OSError:
-            print("Mining was not running.")
+            print("CGminer was not running.")
 
     def start_cgminer(self):
         subprocess.call([cg_miner_exe_path, "-c", cgminer_conf_path])
 
     def start_kryptex(self):
-        pass
+        subprocess.call(kryptex_path)
+
+    def stop_kryptex(self):
+        try:
+            subprocess.call(kryptex_kill)
+        except:
+            print("Kryptex was not running.")
 
     def start_nicehash(self):
-        pass
+        subprocess.call(nicehash_path)
+
+    def stop_nicehash(self):
+        try:
+            subprocess.call(nicehash_kill)
+        except:
+            print("NiceHash was not running")
+
 
 # Source : https://thomassileo.name/blog/2013/09/17/playing-with-python-and-cgminer-rpc-api/
 # Used to send commands to the local cgminer via the API
@@ -89,7 +104,7 @@ class CgminerAPI(object):
 
 # For testing purposes
 def main():
-    os.startfile(lol)
+    subprocess.call(kryptex_kill)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,9 @@
 import subprocess
 
 league_path = 'C:\\Riot Games\\League of Legends\\LeagueClient'
+steam_path = "C:\\Program Files (x86)\\Steam\\Steam.exe"
+
+steam_kill = 'taskkill /im Steam.exe /F /t'
 
 
 class GamingControl:
@@ -14,15 +17,21 @@ class GamingControl:
     def __init__(self):
         pass
 
-    def start_gaming(self):
-        print("General gaming started")
-
     def start_LOL(self):
         subprocess.call(league_path)
 
-    def stop_gaming(self):
-        pass
+    def start_steam(self):
+        subprocess.call(steam_path)
+
+    def stop_steam(self):
+        try:
+            subprocess.call(steam_kill)
+        except:
+            print("Steam was not running.")
 
     def start_furmark(self):
         pass
 
+
+if __name__ == "__main__":
+    subprocess.call(steam_kill)

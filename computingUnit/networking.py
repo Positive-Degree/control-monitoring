@@ -23,8 +23,8 @@ unit_file_name = "unit_model"
 # Network client associated with a unit to use networking functions
 class UnitClient:
 
-    def __init__(self, unit_json):
-        self.unit = ComputingUnit(unit_json)
+    def __init__(self, unit):
+        self.unit = unit
 
     # Sends HTTP GET with custom header to retrieve unit data from the central website DB
     def ping_for_update(self):
@@ -39,7 +39,8 @@ class UnitClient:
 # Network server that receives frequent temperature updates from LAN Rpi
 class UnitServer:
 
-    def __init__(self):
+    def __init__(self, unit):
+        self.unit = unit
         self.socket = socket.socket()
         self.port = port_number
         self.setup_server()
@@ -58,7 +59,8 @@ class UnitServer:
 
                 # Delegates temperatures to be analysed and trigger appropriate actions
                 print(pickle.loads(temps))
-                TemperatureAnalyser(pickle.loads(temps))
+                analyser = TemperatureAnalyser(pickle.loads(temps), self.unit)
+                analyser.analyze_temperatures()
                 client_socket.close()
 
         except KeyboardInterrupt:
@@ -67,46 +69,45 @@ class UnitServer:
 
 # Thread responsible for the client side
 class ClientThread(Thread):
-    def __init__(self):
+    def __init__(self, unit_client):
         super().__init__()
+        self.unit_client = unit_client
 
     def run(self):
-        # Each unit must have a local json model.
-        # ** Valid path for windows only **
-        path = str(os.path.dirname(os.path.abspath(__file__))) + "/" + unit_file_name
-        with open(path, "r") as unit_file:
-            unit = json.load(unit_file)
-        unit_client = UnitClient(unit)
-
         while True:
-            unit_client.ping_for_update()
-            time.sleep(unit_client.unit.ping_frequency)
+            self.unit_client.ping_for_update()
+            time.sleep(self.unit_client.unit.ping_frequency)
 
 
 # Thread responsible for the server side
 class ServerThread(Thread):
-    def __init__(self):
+    def __init__(self, unit):
         super().__init__()
+        self.unit = unit
 
     def run(self):
-        UnitServer()
+        UnitServer(self.unit)
 
 
 # Main script that runs on each unit.
 # - Pings the webserver frequently to stay updated with any changes made by a human controller (client part)
 # - Receive temperature updates from a local network connected Rpi for autonomous control (server part)
 def main():
-    client = ClientThread()
-    server = ServerThread()
+    # Each unit must have a local json model file
+    # ** Valid path for windows only **
+    path = str(os.path.dirname(os.path.abspath(__file__))) + "\\" + unit_file_name
+    with open(path, "r") as unit_file:
+        unit_json = json.load(unit_file)
+
+    unit = ComputingUnit(unit_json)
+    unit_client = UnitClient(unit)
+
+    client = ClientThread(unit_client)
+    server = ServerThread(unit)
 
     client.start()
     server.start()
 
 
-def local_networking_test():
-    UnitServer()
-
-
 if __name__ == "__main__":
     main()
-    # local_networking_test()

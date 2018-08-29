@@ -8,7 +8,7 @@ import time
 import json
 import datetime
 from rpi_pusher import temperature_measure_trigger
-from networking import RpiUnitClient
+from rpi.networking import RpiUnitClient
 import pickle
 
 # Temp reading interval in seconds

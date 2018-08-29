@@ -8,7 +8,7 @@ import time
 import json
 import datetime
 from rpi_pusher import temperature_measure_trigger
-from rpi.networking import RpiUnitClient
+from rpi_networking import RpiUnitClient
 import pickle
 
 # Temp reading interval in seconds
@@ -26,7 +26,7 @@ sensor1_name = "T-CPU"
 sensor2_name = "T-GPU"
 sensor3_name = "T-Ambient"
 sensor4_name = "T-Cuve"
-sensor5_name = "-"
+sensor5_name = "T-PSU"
 
 # Contains all tempSensor objects
 tempSensors = []
@@ -120,7 +120,7 @@ def create_rpi_client():
     with open(path, "r") as unit_file:
         unit = json.load(unit_file)
 
-    client = RpiUnitClient(unit["unit_id"], None, None)
+    client = RpiUnitClient(unit["unit_id"], unit["unit_ip"], unit["unit_port"])
     return client
 
 
@@ -139,7 +139,7 @@ def main():
     sensor2 = TempSensor(sensor2_id, sensor2_name)
     sensor3 = TempSensor(sensor3_id, sensor3_name)
     sensor4 = TempSensor(sensor4_id, sensor4_name)
-    # sensor5 = TempSensor(sensor5_id, sensor5_name)
+    sensor5 = TempSensor(sensor5_id, sensor5_name)
 
     # Create network client
     rpi_client = create_rpi_client()
@@ -155,10 +155,11 @@ def main():
         print(sensor2.sensor_name + ":" + str(sensor2.current_temperature))
         print(sensor3.sensor_name + ":" + str(sensor3.current_temperature))
         print(sensor4.sensor_name + ":" + str(sensor4.current_temperature))
+        print(sensor5.sensor_name + ":" + str(sensor5.current_temperature))
 
         rpi_client.send_to_unit(build_temperatures_msg())
         #log_temps()
-        #push_temps()
+        push_temps()
         time.sleep(reading_interval)
 
 

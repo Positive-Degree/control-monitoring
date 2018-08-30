@@ -185,7 +185,7 @@ class TemperatureAnalyser(Thread):
     def analyze_temperatures(self):
         current_process = self.unit.running_process
 
-        if self.current_temperatures["T-GPU"] > 30 and not current_process == gaming_process:
+        if self.current_temperatures["T-GPU"] > 25 and not current_process == gaming_process:
             self.unit.update_process(gaming_process)
             self.change_unit_process(gaming_process)
 

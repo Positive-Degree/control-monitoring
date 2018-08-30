@@ -157,8 +157,8 @@ def main():
         print(sensor4.sensor_name + ":" + str(sensor4.current_temperature))
         print(sensor5.sensor_name + ":" + str(sensor5.current_temperature))
 
-        # rpi_client.send_to_unit(build_temperatures_msg())
-        #log_temps()
+        rpi_client.send_to_unit(build_temperatures_msg())
+        log_temps()
         push_temps()
         time.sleep(reading_interval)
 

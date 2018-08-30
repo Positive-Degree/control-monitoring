@@ -19,6 +19,9 @@ heroku_units_url = "https://positive-degree.herokuapp.com/units/"
 # Json file name
 unit_file_name = "unit_model"
 
+manual_control_mode = "manual"
+autonomous_control_mode = "autonomous"
+
 
 # Network client associated with a unit to use networking functions
 class UnitClient:
@@ -31,7 +34,6 @@ class UnitClient:
         # Custom http header to only request the unit's info as a json
         custom_headers = {'unit-update': "True"}
         response = requests.get(heroku_units_url + str(self.unit.id) + "/", headers=custom_headers)
-
         unit_values = response.json()[0]["fields"]
         self.unit.apply_changes(unit_values)
 
@@ -57,14 +59,22 @@ class UnitServer:
                 client_socket, client_address = self.socket.accept()  # Establish connection with client.
                 temps = client_socket.recv(4096)
 
-                # Delegates temperatures to be analysed and trigger appropriate actions
-                print(pickle.loads(temps))
-                analyser = TemperatureAnalyser(pickle.loads(temps), self.unit)
-                analyser.analyze_temperatures()
+                # Update unit instance when a connection is received
+                self.unit.update_from_json()
+
+                # Delegates temperatures to be analysed and trigger appropriate actions if
+                # control mode is on autonomous
+                if self.unit.control_mode == autonomous_control_mode:
+                    analyser = TemperatureAnalyser(pickle.loads(temps), self.unit)
+                    analyser.analyze_temperatures()
+
                 client_socket.close()
 
         except KeyboardInterrupt:
             self.socket.close()
+
+    def update_unit(self):
+        pass
 
 
 # Thread responsible for the client side
@@ -109,5 +119,17 @@ def main():
     server.start()
 
 
+def test():
+    path = str(os.path.dirname(os.path.abspath(__file__))) + "/" + unit_file_name
+    with open(path, "r") as unit_file:
+        unit_json = json.load(unit_file)
+
+    unit = ComputingUnit(unit_json)
+    unit_client = UnitClient(unit)
+
+    unit_client.ping_for_update()
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    test()

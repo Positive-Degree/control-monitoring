@@ -21,11 +21,16 @@ unit_ip_field = "ip_address"
 unit_port_field = "port_number"
 unit_process_field = "running_process"
 unit_ping_field = "ping_frequency"
+unit_control_mode = "control_mode"
 
 # Process values
 mining_process = "mining"
 gaming_process = "gaming"
 webhosting_process = "webhosting"
+
+# Control modes values
+manual_control = "manual"
+autonomous_control = "autonomous"
 
 
 # Represents a unit. Responsible for updating its local json model and triggering
@@ -38,13 +43,14 @@ class ComputingUnit:
         self.port_number = unit[unit_port_field]
         self.running_process = unit[unit_process_field]
         self.ping_frequency = unit[unit_ping_field]
+        self.control_mode = unit[unit_control_mode]
 
     def apply_changes(self, new_unit_values):
 
         has_changed = False
 
-        # Attributes that trigger commands to be executed on unit
-        if not new_unit_values[unit_process_field] == self.running_process:
+        # Change the process if it has changed and the unit is on manual control
+        if new_unit_values[unit_control_mode] == manual_control and not new_unit_values[unit_process_field] == self.running_process:
             has_changed = True
             process_controller = UnitProcessControl()
             process_controller.change_process(new_unit_values[unit_process_field])
@@ -53,25 +59,40 @@ class ComputingUnit:
         if not new_unit_values[unit_name_field] == self.name or \
                 not new_unit_values[unit_ip_field] == self.ip_address or \
                 not new_unit_values[unit_port_field] == self.port_number or \
+                not new_unit_values[unit_control_mode] == self.control_mode or \
                 not new_unit_values[unit_ping_field] == self.ping_frequency:
             has_changed = True
 
         if has_changed:
             self._update(new_unit_values)
-            self._update_json_model(unit_json_model_path)
+            self._update_json_model()
 
-    # Update of the object unit values
+    # Reads the json and updates the unit object instance (used on the server instance on unit)
+    def update_from_json(self):
+        with open(unit_json_model_path, "r") as unit_file:
+            unit = json.load(unit_file)
+        unit_file.close()
+
+        self.name = unit[unit_name_field]
+        self.port_number = unit[unit_port_field]
+        self.ip_address = unit[unit_ip_field]
+        self.running_process = unit[unit_process_field]
+        self.ping_frequency = unit[unit_ping_field]
+        self.control_mode = unit[unit_control_mode]
+
+    # Update of the object with new unit values
     def _update(self, new_unit_values):
         self.name = new_unit_values[unit_name_field]
         self.running_process = new_unit_values[unit_process_field]
         self.ip_address = new_unit_values[unit_ip_field]
         self.port_number = new_unit_values[unit_port_field]
         self.ping_frequency = new_unit_values[unit_ping_field]
+        self.control_mode = new_unit_values[unit_control_mode]
 
     # Updates the local unit model json file
-    def _update_json_model(self, json_file_path):
+    def _update_json_model(self):
 
-        with open(json_file_path, "r") as unit_file:
+        with open(unit_json_model_path, "r") as unit_file:
             unit = json.load(unit_file)
         unit_file.close()
 
@@ -80,8 +101,9 @@ class ComputingUnit:
         unit[unit_ip_field] = self.ip_address
         unit[unit_process_field] = self.running_process
         unit[unit_ping_field] = self.ping_frequency
+        unit[unit_control_mode] = self.control_mode
 
-        with open(json_file_path, "w") as unit_file:
+        with open(unit_json_model_path, "w") as unit_file:
             json.dump(unit, unit_file)
         unit_file.close()
 

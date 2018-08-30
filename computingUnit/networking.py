@@ -10,7 +10,7 @@ import json
 import os
 import time
 import pickle
-from computingUnit.unit_control import ComputingUnit, TemperatureAnalyser
+from computingUnit.unit_control import ComputingUnit, TemperatureAnalyser, UnitProcessControl
 
 # Unit listen port number
 port_number = 31000

@@ -80,6 +80,11 @@ class ComputingUnit:
         self.ping_frequency = unit[unit_ping_field]
         self.control_mode = unit[unit_control_mode]
 
+    # Only updates of the unit process on the object instance and json file
+    def update_process(self, new_process):
+        self.running_process = new_process
+        self._update_json_model()
+
     # Update of the object with new unit values
     def _update(self, new_unit_values):
         self.name = new_unit_values[unit_name_field]
@@ -88,6 +93,8 @@ class ComputingUnit:
         self.port_number = new_unit_values[unit_port_field]
         self.ping_frequency = new_unit_values[unit_ping_field]
         self.control_mode = new_unit_values[unit_control_mode]
+
+        self._update_json_model()
 
     # Updates the local unit model json file
     def _update_json_model(self):
@@ -178,9 +185,9 @@ class TemperatureAnalyser(Thread):
     def analyze_temperatures(self):
         current_process = self.unit.running_process
 
-        if self.current_temperatures["T-GPU"] < 30:
-            if not current_process == "mining":
-                self.change_unit_process("mining")
+        if self.current_temperatures["T-GPU"] > 30 and not current_process == gaming_process:
+            self.unit.update_process(gaming_process)
+            self.change_unit_process(gaming_process)
 
 
 # For testing purposes

@@ -10,6 +10,7 @@ import datetime
 from rpi_pusher import temperature_measure_trigger
 from rpi_networking import RpiUnitClient
 import pickle
+from threading import Thread
 
 # Temp reading interval in seconds
 reading_interval = 3
@@ -133,34 +134,58 @@ def build_temperatures_msg():
     return pickle.dumps(temp_msg)
 
 
+# Thread responsible of local processes not linked with unit
+class LocalThread(Thread):
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        # Creates all the sensors
+        sensor1 = TempSensor(sensor1_id, sensor1_name)
+        sensor2 = TempSensor(sensor2_id, sensor2_name)
+        sensor3 = TempSensor(sensor3_id, sensor3_name)
+        sensor4 = TempSensor(sensor4_id, sensor4_name)
+        sensor5 = TempSensor(sensor5_id, sensor5_name)
+
+        # Commands for reading sensor values
+        os.system('modprobe w1-gpio')
+        os.system('modprobe w1-therm')
+
+        # Shows temps every x amount of time
+        while True:
+            update_sensors()
+            print(sensor1.sensor_name + ":" + str(sensor1.current_temperature))
+            print(sensor2.sensor_name + ":" + str(sensor2.current_temperature))
+            print(sensor3.sensor_name + ":" + str(sensor3.current_temperature))
+            print(sensor4.sensor_name + ":" + str(sensor4.current_temperature))
+            print(sensor5.sensor_name + ":" + str(sensor5.current_temperature))
+
+            log_temps()
+            push_temps()
+            time.sleep(reading_interval)
+
+
+# Thread responsible of communication with unit
+class ClientThread(Thread):
+    def __init__(self, client):
+        super().__init__()
+        self.client = client
+
+    def run(self):
+        while True:
+            self.client.send_to_unit(build_temperatures_msg())
+            time.sleep(reading_interval)
+
+
+# Creates and starts the different threads
 def main():
-    # Creates all the sensors
-    sensor1 = TempSensor(sensor1_id, sensor1_name)
-    sensor2 = TempSensor(sensor2_id, sensor2_name)
-    sensor3 = TempSensor(sensor3_id, sensor3_name)
-    sensor4 = TempSensor(sensor4_id, sensor4_name)
-    sensor5 = TempSensor(sensor5_id, sensor5_name)
+    client = create_rpi_client()
 
-    # Create network client
-    rpi_client = create_rpi_client()
+    local_t = LocalThread()
+    client_t = ClientThread(client)
 
-    # Commands for reading sensor values
-    os.system('modprobe w1-gpio')
-    os.system('modprobe w1-therm')
-
-    # Shows temps every x amount of time
-    while True:
-        update_sensors()
-        print(sensor1.sensor_name + ":" + str(sensor1.current_temperature))
-        print(sensor2.sensor_name + ":" + str(sensor2.current_temperature))
-        print(sensor3.sensor_name + ":" + str(sensor3.current_temperature))
-        print(sensor4.sensor_name + ":" + str(sensor4.current_temperature))
-        print(sensor5.sensor_name + ":" + str(sensor5.current_temperature))
-
-        # rpi_client.send_to_unit(build_temperatures_msg())
-        #log_temps()
-        push_temps()
-        time.sleep(reading_interval)
+    local_t.start()
+    client_t.start()
 
 
 if __name__ == "__main__":

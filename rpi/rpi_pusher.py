@@ -3,13 +3,13 @@
 # 2018/08/07
 #
 
-import pusher
+from pusher import Pusher
 
 # Pusher constants
 temperature_monitoring_channel = 'temp-channel'
 
 # Pusher app configuration
-pusher_client = pusher.Pusher(
+pusher_client = Pusher(
   app_id='573623',
   key='9c3b69d78c3088e46d6c',
   secret='5dd54a2e543746465100',
